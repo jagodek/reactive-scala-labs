@@ -30,23 +30,66 @@ object Checkout {
 }
 
 class Checkout extends Actor {
-
-  private val scheduler = context.system.scheduler
+  import context._
   private val log       = Logging(context.system, this)
 
   val checkoutTimerDuration = 1 seconds
   val paymentTimerDuration  = 1 seconds
 
-  def receive: Receive = ???
+  def receive: Receive = LoggingReceive{
+    case StartCheckout => 
+      log.debug("[CHECKOUT RECEIVE] checkout started")
+      context become selectingDelivery(system.scheduler.scheduleOnce(checkoutTimerDuration, self, ExpireCheckout))
+  }
 
-  def selectingDelivery(timer: Cancellable): Receive = ???
+  def selectingDelivery(timer: Cancellable): Receive = LoggingReceive{
+    case CancelCheckout => 
+      log.debug("[CHECKOUT SELECTINGDELIVERY] checkout started")
+      timer.cancel()
+      context become cancelled
 
-  def selectingPaymentMethod(timer: Cancellable): Receive = ???
+    case SelectDeliveryMethod(method) =>
+      log.debug(s"[CHECKOUT SELECTINGDELIVERY] choosen delivery method: $method")
+      context.become(selectingPaymentMethod(system.scheduler.scheduleOnce(checkoutTimerDuration, self, ExpireCheckout)))
+    case ExpireCheckout =>
+      log.debug("[CHECKOUT SELECTINGDELIVERY] checkout expired")
+      context become cancelled
+  }
 
-  def processingPayment(timer: Cancellable): Receive = ???
+  def selectingPaymentMethod(timer: Cancellable): Receive = LoggingReceive{
+    case CancelCheckout =>
+      timer.cancel()
+      log.debug("[CHECKOUT SELECTINGPAYMENTMETHOD] checkout cancelled")
+      context become cancelled
 
-  def cancelled: Receive = ???
+    case SelectPayment(payment) =>
+      timer.cancel()
+      log.debug(s"[CHECKOUT SELECTINGPAYMENTMETHOD] choose payment mehtod: $payment")
+      context become processingPayment(system.scheduler.scheduleOnce(paymentTimerDuration, self, ExpirePayment))
 
-  def closed: Receive = ???
+    case ExpireCheckout =>
+      log.debug("[CHECKOUT SELECTINGPAYMENTMETHOD] checkout expired")
+      context become cancelled
+  }
+
+  def processingPayment(timer: Cancellable): Receive = LoggingReceive{
+    case CancelCheckout =>
+      timer.cancel()
+      log.debug("[CHECKOUT PROCESSINGPAYMENT] checkout cancelled")
+      context.become(cancelled)
+    case ConfirmPaymentReceived =>
+      context.become(closed)
+    case ExpirePayment =>
+      log.debug("[CHECKOUT PROCESSINGPAYMENT] checkout expired")
+      context become cancelled
+  }
+
+  def cancelled: Receive = {
+    case _ => context.parent ! CheckOutClosed
+  }
+
+  def closed: Receive = {
+    case _ => context.parent ! PaymentStarted(context.self)    
+  }
 
 }
