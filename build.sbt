@@ -14,6 +14,3 @@ libraryDependencies ++= Seq(
   "org.scalatest"     %% "scalatest"                % "3.2.14" % "test",
   "ch.qos.logback"    % "logback-classic"           % "1.4.3"
 )
-
-// scalaFmt
-scalafmtOnCompile := true
