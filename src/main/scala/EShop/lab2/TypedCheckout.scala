@@ -7,6 +7,8 @@ import scala.language.postfixOps
 
 import scala.concurrent.duration._
 import EShop.lab3.OrderManager
+import EShop.lab3.Payment
+
 
 object TypedCheckout {
 
@@ -66,7 +68,9 @@ class TypedCheckout(
         case CancelCheckout => 
           timer.cancel()
           cancelled
-        case SelectPayment(payment) =>
+        case SelectPayment(payment, orderManager) =>
+          val paymentActor = context.spawn(new Payment(payment, orderManager, context.self).start, "payment")
+          orderManager ! OrderManager.ConfirmPaymentStarted(paymentActor)
           processingPayment(context.scheduleOnce(paymentTimerDuration, context.self, ExpirePayment))
         case ExpireCheckout =>
           cancelled

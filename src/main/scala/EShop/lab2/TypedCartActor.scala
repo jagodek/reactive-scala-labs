@@ -58,9 +58,15 @@ class TypedCartActor {
         case ExpireCart =>
           empty
 
-        case StartCheckout => 
+        case StartCheckout(orderManagerRef) => 
+          val checkout = context.spawn(new TypedCheckout(context.self).start, "checkout")
+          orderManagerRef ! OrderManager.ConfirmCheckoutStarted(checkout)
+          checkout ! TypedCheckout.StartCheckout
           timer.cancel()
           inCheckout(cart)
+        case GetItems(sender) => 
+          sender ! cart
+          Behaviors.same
       }
     }
   }
