@@ -24,13 +24,12 @@ libraryDependencies ++= Seq(
   "org.iq80.leveldb"          % "leveldb"                   % "0.12",
   "org.fusesource.leveldbjni" % "leveldbjni-all"            % "1.8",
   "com.github.dnvriend"      %% "akka-persistence-inmemory" % "2.5.15.2",
-  "org.scalatest"            %% "scalatest"                 % "3.2.14"     % "test",
-  "ch.qos.logback"            % "logback-classic"           % "1.4.4",
-  "io.gatling"                % "gatling-http"              % "3.8.4"
+  "org.scalatest"            %% "scalatest"                 % "3.2.14"    % "test",
+  "ch.qos.logback"            % "logback-classic"           % "1.4.4"
 )
 
 dependencyOverrides ++= List(
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1"
 )
 
 libraryDependencies += "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.8.4" % "test,it"
