@@ -23,10 +23,10 @@ class TypedCartTest
   import TypedCartActor._
 
   //use GetItems command which was added to make test easier
-   it should "add item properly [sync]" in {
+  it should "add item properly [sync]" in {
     //Given
     val testKit = BehaviorTestKit(new TypedCartActor().start)
-    val inbox = TestInbox[Cart]()
+    val inbox   = TestInbox[Cart]()
 
     //When
     testKit.run(TypedCartActor.AddItem("apple"))
@@ -39,7 +39,7 @@ class TypedCartTest
   it should "add item properly [async]" in {
     //Given
     val probe = testKit.createTestProbe[Any]()
-    val cart = testKit.spawn(new TypedCartActor().start)
+    val cart  = testKit.spawn(new TypedCartActor().start)
 
     //When
     cart ! AddItem("apple")
@@ -52,7 +52,7 @@ class TypedCartTest
   it should "be empty after adding and removing the same item [sync]" in {
     //Given
     val testKit = BehaviorTestKit(new TypedCartActor().start)
-    val inbox = TestInbox[Cart]()
+    val inbox   = TestInbox[Cart]()
 
     //When
     testKit.run(TypedCartActor.AddItem("apple"))
@@ -66,7 +66,7 @@ class TypedCartTest
   it should "be empty after adding and removing the same item [async]" in {
     //Given
     val probe = testKit.createTestProbe[Any]()
-    val cart = testKit.spawn(new TypedCartActor().start)
+    val cart  = testKit.spawn(new TypedCartActor().start)
 
     //When
     cart ! AddItem("apple")
@@ -80,7 +80,7 @@ class TypedCartTest
   it should "start checkout [sync]" in {
     //Given
     val testKit = BehaviorTestKit(new TypedCartActor().start)
-    val inbox = TestInbox[OrderManager.Command]()
+    val inbox   = TestInbox[OrderManager.Command]()
 
     //When
     testKit.run(AddItem("apple"))
@@ -95,7 +95,7 @@ class TypedCartTest
   it should "start checkout [async]" in {
     //Given
     val probe = testKit.createTestProbe[Any]()
-    val cart = testKit.spawn(new TypedCartActor().start)
+    val cart  = testKit.spawn(new TypedCartActor().start)
 
     //When
     cart ! AddItem("apple")

@@ -20,7 +20,7 @@ class TypedCheckoutTest
     testKit.shutdownTestKit()
 
   it should "Send close confirmation to cart" in {
-    val cartActorProbe = testKit.createTestProbe[TypedCartActor.Command]
+    val cartActorProbe         = testKit.createTestProbe[TypedCartActor.Command]
     val orderManagerActorProbe = testKit.createTestProbe[OrderManager.Command]
 
     //Given
