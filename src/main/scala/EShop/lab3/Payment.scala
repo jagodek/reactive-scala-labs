@@ -8,6 +8,10 @@ object Payment {
 
   sealed trait Command
   case object DoPayment extends Command
+
+  sealed trait Event
+  case object PaymentConfirmed extends Event
+
 }
 
 class Payment(
@@ -18,14 +22,14 @@ class Payment(
 
   import Payment._
 
-  def start: Behavior[Payment.Command] = Behaviors.receive {
-    (context, message) =>
+  def start: Behavior[Payment.Command] =
+    Behaviors.receive { (context, message) =>
       message match {
         case DoPayment =>
           checkout ! TypedCheckout.ConfirmPaymentReceived
           orderManager ! OrderManager.ConfirmPaymentReceived
           Behaviors.same
       }
-  }
+    }
 
 }
