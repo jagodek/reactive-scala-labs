@@ -8,11 +8,11 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
 class TypedCheckoutTest
-  extends ScalaTestWithActorTestKit
-  with AnyFlatSpecLike
-  with BeforeAndAfterAll
-  with Matchers
-  with ScalaFutures {
+    extends ScalaTestWithActorTestKit
+    with AnyFlatSpecLike
+    with BeforeAndAfterAll
+    with Matchers
+    with ScalaFutures {
 
   import TypedCheckout._
 
@@ -20,7 +20,7 @@ class TypedCheckoutTest
     testKit.shutdownTestKit()
 
   it should "Send close confirmation to cart" in {
-    val cartActorProbe         = testKit.createTestProbe[TypedCartActor.Command]
+    val cartActorProbe = testKit.createTestProbe[TypedCartActor.Command]
     val orderManagerActorProbe = testKit.createTestProbe[OrderManager.Command]
 
     //Given

@@ -2,7 +2,7 @@ package EShop.lab2
 
 case class Cart(items: Seq[Any]) {
   def contains(item: Any): Boolean = items.contains(item)
-  def addItem(item: Any): Cart ={
+  def addItem(item: Any): Cart = {
     Cart(items ++ Seq(item))
   }
   def removeItem(item: Any): Cart =

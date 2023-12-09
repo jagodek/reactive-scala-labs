@@ -6,7 +6,11 @@ import akka.actor.Cancellable
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.persistence.typed.PersistenceId
-import akka.persistence.typed.scaladsl.{Effect, EventSourcedBehavior, RetentionCriteria}
+import akka.persistence.typed.scaladsl.{
+  Effect,
+  EventSourcedBehavior,
+  RetentionCriteria
+}
 
 import scala.concurrent.duration._
 
@@ -30,7 +34,8 @@ class PersistentCartActor {
     // .withRetention(RetentionCriteria.snapshotEvery(numberOfEvents = 3, keepNSnapshots = 2))
     }
 
-  def commandHandler(context: ActorContext[Command]): (State, Command) => Effect[Event, State] =
+  def commandHandler(context: ActorContext[Command])
+    : (State, Command) => Effect[Event, State] =
     (state, command) => {
       state match {
         case Empty =>
@@ -55,11 +60,13 @@ class PersistentCartActor {
             case ExpireCart =>
               Effect.persist(CartExpired)
             case StartCheckout(orderManagerRef) =>
-              val checkout = context.spawn(new TypedCheckout(context.self).start, "checkout")
+              val checkout =
+                context.spawn(new TypedCheckout(context.self).start, "checkout")
               Effect
                 .persist(CheckoutStarted(checkout))
                 .thenRun { _ =>
-                  orderManagerRef ! OrderManager.ConfirmCheckoutStarted(checkout)
+                  orderManagerRef ! OrderManager.ConfirmCheckoutStarted(
+                    checkout)
                   checkout ! TypedCheckout.StartCheckout
                 }
             case GetItems(sender) =>
@@ -91,16 +98,20 @@ class PersistentCartActor {
           }
         case ItemAdded(item) =>
           state match {
-            case Empty                 => NonEmpty(Cart.empty.addItem(item), scheduleTimer(context))
-            case NonEmpty(cart, timer) => NonEmpty(cart.addItem(item), scheduleTimer(context))
-            case _                     => state
+            case Empty =>
+              NonEmpty(Cart.empty.addItem(item), scheduleTimer(context))
+            case NonEmpty(cart, timer) =>
+              NonEmpty(cart.addItem(item), scheduleTimer(context))
+            case _ => state
           }
         case ItemRemoved(item) =>
           state match {
-            case NonEmpty(cart, timer) if (cart.size == 1 && cart.contains(item)) =>
-               Empty
-            case NonEmpty(cart, timer) if (cart.size > 1 && cart.contains(item)) =>
-               NonEmpty(cart.removeItem(item), scheduleTimer(context))
+            case NonEmpty(cart, timer)
+                if (cart.size == 1 && cart.contains(item)) =>
+              Empty
+            case NonEmpty(cart, timer)
+                if (cart.size > 1 && cart.contains(item)) =>
+              NonEmpty(cart.removeItem(item), scheduleTimer(context))
             case _ => state
           }
         case CartEmptied | CartExpired =>

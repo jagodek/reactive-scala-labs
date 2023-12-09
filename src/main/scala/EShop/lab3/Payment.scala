@@ -11,9 +11,9 @@ object Payment {
 }
 
 class Payment(
-  method: String,
-  orderManager: ActorRef[OrderManager.Command],
-  checkout: ActorRef[TypedCheckout.Command]
+    method: String,
+    orderManager: ActorRef[OrderManager.Command],
+    checkout: ActorRef[TypedCheckout.Command]
 ) {
 
   import Payment._

@@ -17,9 +17,9 @@ import scala.concurrent.Future
 class PaymentTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike {
 
   it should "properly confirm payment after 2 retries using payu payment method" in {
-    val manager  = testKit.createTestProbe[OrderManager.Command]()
+    val manager = testKit.createTestProbe[OrderManager.Command]()
     val checkout = testKit.createTestProbe[TypedCheckout.Command]()
-    val payment  = testKit.spawn(Payment("payu", manager.ref, checkout.ref))
+    val payment = testKit.spawn(Payment("payu", manager.ref, checkout.ref))
 
     val server = new PaymentServiceServer()
     Future {
@@ -34,9 +34,9 @@ class PaymentTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike {
   }
 
   it should "stop the payment process if the client request results in NotFound" in {
-    val manager  = testKit.createTestProbe[OrderManager.Command]()
+    val manager = testKit.createTestProbe[OrderManager.Command]()
     val checkout = testKit.createTestProbe[TypedCheckout.Command]()
-    val payment  = testKit.spawn(Payment("notfound", manager.ref, checkout.ref))
+    val payment = testKit.spawn(Payment("notfound", manager.ref, checkout.ref))
 
     val server = new PaymentServiceServer()
     Future {

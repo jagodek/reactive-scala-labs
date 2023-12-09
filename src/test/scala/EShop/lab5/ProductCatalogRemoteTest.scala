@@ -20,8 +20,12 @@ class ProductCatalogRemoteTest extends AsyncFlatSpecLike with Matchers {
     val config = ConfigFactory.load()
 
     val actorSystem =
-      ActorSystem[Nothing](Behaviors.empty, "ProductCatalog", config.getConfig("productcatalog").withFallback(config))
-    actorSystem.systemActorOf(ProductCatalog(new SearchService()), "productcatalog")
+      ActorSystem[Nothing](
+        Behaviors.empty,
+        "ProductCatalog",
+        config.getConfig("productcatalog").withFallback(config))
+    actorSystem.systemActorOf(ProductCatalog(new SearchService()),
+                              "productcatalog")
 
     val anotherActorSystem =
       ActorSystem[Nothing](Behaviors.empty, "ProductCatalog")
@@ -31,13 +35,16 @@ class ProductCatalogRemoteTest extends AsyncFlatSpecLike with Matchers {
     Thread.sleep(3000)
 
     val listingFuture = anotherActorSystem.receptionist.ask(
-      (ref: ActorRef[Receptionist.Listing]) => Receptionist.find(ProductCatalog.ProductCatalogServiceKey, ref)
+      (ref: ActorRef[Receptionist.Listing]) =>
+        Receptionist.find(ProductCatalog.ProductCatalogServiceKey, ref)
     )
 
     for {
       ProductCatalog.ProductCatalogServiceKey.Listing(listing) <- listingFuture
       productCatalog = listing.head
-      items <- productCatalog.ask(ref => GetItems("gerber", List("cream"), ref)).mapTo[ProductCatalog.Items]
+      items <- productCatalog
+        .ask(ref => GetItems("gerber", List("cream"), ref))
+        .mapTo[ProductCatalog.Items]
       _ = actorSystem.terminate()
       _ = anotherActorSystem.terminate()
     } yield {

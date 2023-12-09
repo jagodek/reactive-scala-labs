@@ -19,17 +19,31 @@ object PaymentService {
   // use akka.http.scaladsl.Http to make http based payment request
   // use getUri method to obtain url
   def apply(
-    method: String,
-    payment: ActorRef[Response]
-  ): Behavior[HttpResponse] = Behaviors.setup { context =>
-    ???
-  }
+      method: String,
+      payment: ActorRef[Response]
+  ): Behavior[HttpResponse] =
+    Behaviors.setup { context =>
+      val http = Http(context.system)
+      val result = http.singleRequest(HttpRequest(uri = getURI(method)))
+
+      Behaviors.receiveMessage({
+        case HttpResponse(code, _, _, _) =>
+          code match {
+            case StatusCodes.OK =>
+              payment ! PaymentSucceeded
+              Behaviors.stopped
+            case StatusCodes.NotFound => throw PaymentClientError()
+            case _                    => throw PaymentServerError()
+          }
+      })
+    }
 
   // remember running PymentServiceServer() before trying payu based payments
-  private def getURI(method: String) = method match {
-    case "payu"   => "http://127.0.0.1:8080"
-    case "paypal" => s"http://httpbin.org/status/408"
-    case "visa"   => s"http://httpbin.org/status/200"
-    case _        => s"http://httpbin.org/status/404"
-  }
+  private def getURI(method: String) =
+    method match {
+      case "payu"   => "http://127.0.0.1:8080"
+      case "paypal" => s"http://httpbin.org/status/408"
+      case "visa"   => s"http://httpbin.org/status/200"
+      case _        => s"http://httpbin.org/status/404"
+    }
 }

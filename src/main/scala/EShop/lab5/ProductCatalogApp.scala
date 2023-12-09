@@ -36,7 +36,8 @@ class SearchService() {
     .toList
     .groupBy(_.brand.toLowerCase)
 
-  def search(brand: String, keyWords: List[String]): List[ProductCatalog.Item] = {
+  def search(brand: String,
+             keyWords: List[String]): List[ProductCatalog.Item] = {
     val lowerCasedKeyWords = keyWords.map(_.toLowerCase)
     brandItemsMap
       .getOrElse(brand.toLowerCase, Nil)
@@ -52,22 +53,31 @@ class SearchService() {
 object ProductCatalog {
   val ProductCatalogServiceKey = ServiceKey[Query]("ProductCatalog")
 
-  case class Item(id: URI, name: String, brand: String, price: BigDecimal, count: Int)
+  case class Item(id: URI,
+                  name: String,
+                  brand: String,
+                  price: BigDecimal,
+                  count: Int)
 
   sealed trait Query
-  case class GetItems(brand: String, productKeyWords: List[String], sender: ActorRef[Ack]) extends Query
+  case class GetItems(brand: String,
+                      productKeyWords: List[String],
+                      sender: ActorRef[Ack])
+      extends Query
 
   sealed trait Ack
   case class Items(items: List[Item]) extends Ack
 
-  def apply(searchService: SearchService): Behavior[Query] = Behaviors.setup { context =>
-    context.system.receptionist ! Receptionist.register(ProductCatalogServiceKey, context.self)
+  def apply(searchService: SearchService): Behavior[Query] = Behaviors.setup {
+    context =>
+      context.system.receptionist ! Receptionist
+        .register(ProductCatalogServiceKey, context.self)
 
-    Behaviors.receiveMessage {
-      case GetItems(brand, productKeyWords, sender) =>
-        sender ! Items(searchService.search(brand, productKeyWords))
-        Behaviors.same
-    }
+      Behaviors.receiveMessage {
+        case GetItems(brand, productKeyWords, sender) =>
+          sender ! Items(searchService.search(brand, productKeyWords))
+          Behaviors.same
+      }
   }
 }
 
