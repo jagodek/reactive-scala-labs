@@ -16,9 +16,11 @@ class PersistentCheckout {
 
   val timerDuration: FiniteDuration = 1.seconds
 
-  def schedule(context: ActorContext[Command]): Cancellable = ???
+  def schedule(context: ActorContext[Command]): Cancellable =
+    context.scheduleOnce(timerDuration, context.self, ExpireCheckout)
 
-  def apply(cartActor: ActorRef[TypedCartActor.Command], persistenceId: PersistenceId): Behavior[Command] =
+  def apply(cartActor: ActorRef[TypedCartActor.Command],
+            persistenceId: PersistenceId): Behavior[Command] =
     Behaviors.setup { context =>
       EventSourcedBehavior(
         persistenceId,
@@ -29,8 +31,8 @@ class PersistentCheckout {
     }
 
   def commandHandler(
-    context: ActorContext[Command],
-    cartActor: ActorRef[TypedCartActor.Command]
+      context: ActorContext[Command],
+      cartActor: ActorRef[TypedCartActor.Command]
   ): (State, Command) => Effect[Event, State] =
     (state, command) => {
       state match {
@@ -55,7 +57,9 @@ class PersistentCheckout {
         case SelectingPaymentMethod(_) =>
           command match {
             case SelectPayment(payment, orderManagerRef) =>
-              val paymentActor = context.spawn(new Payment(payment, orderManagerRef, context.self).start, "payment")
+              val paymentActor = context.spawn(
+                new Payment(payment, orderManagerRef, context.self).start,
+                "payment")
               Effect.persist(PaymentStarted(paymentActor)).thenRun { _ =>
                 cartActor ! TypedCartActor.ConfirmCheckoutClosed
               }
@@ -94,11 +98,12 @@ class PersistentCheckout {
   def eventHandler(context: ActorContext[Command]): (State, Event) => State =
     (state, event) => {
       event match {
-        case CheckoutStarted           => SelectingDelivery(schedule(context))
-        case DeliveryMethodSelected(_) => SelectingPaymentMethod(schedule(context))
-        case PaymentStarted(_)         => ProcessingPayment(schedule(context))
-        case CheckOutClosed            => Closed
-        case CheckoutCancelled         => Cancelled
+        case CheckoutStarted => SelectingDelivery(schedule(context))
+        case DeliveryMethodSelected(_) =>
+          SelectingPaymentMethod(schedule(context))
+        case PaymentStarted(_) => ProcessingPayment(schedule(context))
+        case CheckOutClosed    => Closed
+        case CheckoutCancelled => Cancelled
       }
     }
 }

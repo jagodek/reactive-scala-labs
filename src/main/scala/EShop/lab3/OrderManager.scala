@@ -8,14 +8,22 @@ import scala.util.control
 object OrderManager {
 
   sealed trait Command
-  case class AddItem(id: String, sender: ActorRef[Ack])                                               extends Command
-  case class RemoveItem(id: String, sender: ActorRef[Ack])                                            extends Command
-  case class SelectDeliveryAndPaymentMethod(delivery: String, payment: String, sender: ActorRef[Ack]) extends Command
-  case class Buy(sender: ActorRef[Ack])                                                               extends Command
-  case class Pay(sender: ActorRef[Ack])                                                               extends Command
-  case class ConfirmCheckoutStarted(checkoutRef: ActorRef[TypedCheckout.Command])                     extends Command
-  case class ConfirmPaymentStarted(paymentRef: ActorRef[Payment.Command])                             extends Command
-  case object ConfirmPaymentReceived                                                                  extends Command
+  case class AddItem(id: String, sender: ActorRef[Ack]) extends Command
+  case class RemoveItem(id: String, sender: ActorRef[Ack]) extends Command
+  case class SelectDeliveryAndPaymentMethod(delivery: String,
+                                            payment: String,
+                                            sender: ActorRef[Ack])
+      extends Command
+  case class Buy(sender: ActorRef[Ack]) extends Command
+  case class Pay(sender: ActorRef[Ack]) extends Command
+  case class ConfirmCheckoutStarted(
+      checkoutRef: ActorRef[TypedCheckout.Command])
+      extends Command
+  case class ConfirmPaymentStarted(paymentRef: ActorRef[Payment.Command])
+      extends Command
+  case object ConfirmPaymentReceived extends Command
+  case object PaymentRejected extends Command
+  case object PaymentRestarted extends Command
 
   sealed trait Ack
   case object Done extends Ack //trivial ACK
@@ -40,7 +48,8 @@ class OrderManager {
       }
     }
 
-  def open(cartActor: ActorRef[TypedCartActor.Command]): Behavior[OrderManager.Command] =
+  def open(cartActor: ActorRef[TypedCartActor.Command])
+    : Behavior[OrderManager.Command] =
     Behaviors.receive { (context, message) =>
       {
         message match {
@@ -63,8 +72,8 @@ class OrderManager {
     }
 
   def inCheckout(
-    cartActorRef: ActorRef[TypedCartActor.Command],
-    senderRef: ActorRef[Ack]
+      cartActorRef: ActorRef[TypedCartActor.Command],
+      senderRef: ActorRef[Ack]
   ): Behavior[OrderManager.Command] =
     Behaviors.receive { (context, message) =>
       {
@@ -76,7 +85,8 @@ class OrderManager {
       }
     }
 
-  def inCheckout(checkoutActorRef: ActorRef[TypedCheckout.Command]): Behavior[OrderManager.Command] =
+  def inCheckout(checkoutActorRef: ActorRef[TypedCheckout.Command])
+    : Behavior[OrderManager.Command] =
     Behaviors.receive { (context, message) =>
       message match {
         case SelectDeliveryAndPaymentMethod(delivery, payment, sender) =>
@@ -101,8 +111,8 @@ class OrderManager {
     }
 
   def inPayment(
-    paymentActorRef: ActorRef[Payment.Command],
-    senderRef: ActorRef[Ack]
+      paymentActorRef: ActorRef[Payment.Command],
+      senderRef: ActorRef[Ack]
   ): Behavior[OrderManager.Command] =
     Behaviors.receive { (context, message) =>
       message match {

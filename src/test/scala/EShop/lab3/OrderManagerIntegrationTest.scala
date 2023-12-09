@@ -9,17 +9,13 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
-import akka.pattern.ask
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpecLike
-import org.scalatest.matchers.should.Matchers
 
 class OrderManagerIntegrationTest
-  extends ScalaTestWithActorTestKit
-  with AnyFlatSpecLike
-  with BeforeAndAfterAll
-  with Matchers
-  with ScalaFutures {
+    extends ScalaTestWithActorTestKit
+    with AnyFlatSpecLike
+    with BeforeAndAfterAll
+    with Matchers
+    with ScalaFutures {
 
   import OrderManager._
 
@@ -28,11 +24,14 @@ class OrderManagerIntegrationTest
   implicit val scheduler: Scheduler = testKit.scheduler
 
   def sendMessage(
-    orderManager: ActorRef[OrderManager.Command],
-    message: ActorRef[Any] => OrderManager.Command
+      orderManager: ActorRef[OrderManager.Command],
+      message: ActorRef[Any] => OrderManager.Command
   ): Unit = {
     import akka.actor.typed.scaladsl.AskPattern.Askable
-    orderManager.ask[Any](message).mapTo[OrderManager.Ack].futureValue shouldBe Done
+    orderManager
+      .ask[Any](message)
+      .mapTo[OrderManager.Ack]
+      .futureValue shouldBe Done
   }
 
   it should "supervise whole order process" in {
@@ -42,7 +41,8 @@ class OrderManagerIntegrationTest
 
     sendMessage(orderManager, Buy)
 
-    sendMessage(orderManager, SelectDeliveryAndPaymentMethod("paypal", "inpost", _))
+    sendMessage(orderManager,
+                SelectDeliveryAndPaymentMethod("paypal", "inpost", _))
 
     sendMessage(orderManager, ref => Pay(ref))
   }
